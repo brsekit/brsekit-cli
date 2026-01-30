@@ -1,0 +1,55 @@
+{
+  "name": "brsekit-cli",
+  "version": "1.0.0",
+  "description": "CLI tool for bootstrapping and updating BrseKit projects",
+  "type": "module",
+  "bin": {
+    "bk": "bin/bk.js"
+  },
+  "files": [
+    "bin/bk.js",
+    "dist/**/*"
+  ],
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "lint": "tsc --noEmit",
+    "test": "echo \"No tests yet\""
+  },
+  "keywords": [
+    "cli",
+    "brsekit",
+    "brse",
+    "claude",
+    "bootstrap"
+  ],
+  "author": "BrseKit",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brsekit/brsekit-cli.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "@octokit/rest": "^22.0.0",
+    "cac": "^6.7.14",
+    "extract-zip": "^2.0.1",
+    "fs-extra": "^11.2.0",
+    "picocolors": "^1.1.1",
+    "semver": "^7.7.3",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.7.2"
+  }
+}

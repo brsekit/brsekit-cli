@@ -1,0 +1,1 @@
+{"version":3,"file":"doctor.d.ts","sourceRoot":"","sources":["../../src/commands/doctor.ts"],"names":[],"mappings":"AAAA;;GAEG;AAQH,UAAU,aAAa;IACrB,GAAG,CAAC,EAAE,OAAO,CAAC;IACd,OAAO,CAAC,EAAE,OAAO,CAAC;CACnB;AAmMD;;GAEG;AACH,wBAAsB,aAAa,CAAC,OAAO,EAAE,aAAa,GAAG,OAAO,CAAC,IAAI,CAAC,CAuCzE"}
