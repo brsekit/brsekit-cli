@@ -12,4 +12,6 @@ export declare const KIT_CONFIG: {
 };
 export declare const PROTECTED_PATTERNS: string[];
 export declare const DEFAULT_SKILLS_DIR = ".claude/skills";
+export declare const DEPRECATED_SKILLS: string[];
+export declare const WORKSPACE_FOLDERS: string[];
 //# sourceMappingURL=constants.d.ts.map

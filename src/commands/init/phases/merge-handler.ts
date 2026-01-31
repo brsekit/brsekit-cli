@@ -176,7 +176,10 @@ export async function handleMerge(ctx: InitContext): Promise<InitContext> {
     // Get all entries from extracted directory
     const entries = readdirSync(ctx.extractDir, { withFileTypes: true });
 
-    // Separate workspace folders (DATA) from skills content (CODE)
+    // Handle entries based on type:
+    // 1. WORKSPACE_FOLDERS (projects/, knowledge/) → workspace root
+    // 2. .claude/ → merge into workspace's .claude/
+    // 3. Everything else → .claude/skills/
     for (const entry of entries) {
       const srcPath = join(ctx.extractDir, entry.name);
 
@@ -187,14 +190,22 @@ export async function handleMerge(ctx: InitContext): Promise<InitContext> {
         mkdirSync(destPath, { recursive: true });
         await copyDirectory(srcPath, destPath, stats);
         logger.verbose(`Installed workspace folder: ${entry.name}/`);
+      } else if (entry.name === ".claude" && entry.isDirectory()) {
+        // .claude/ folder → merge into workspace's .claude/
+        const destPath = join(ctx.resolvedDir, ".claude");
+        spinner.message("Installing .claude/ folder...");
+        mkdirSync(destPath, { recursive: true });
+        await copyDirectory(srcPath, destPath, stats);
+        logger.verbose("Installed .claude/ folder");
       } else {
-        // CODE folders/files → copy to .claude/skills/
+        // Root-level files (README.md, install.sh, metadata.json, etc.) → .claude/skills/
         const destPath = join(ctx.skillsDir, entry.name);
         if (entry.isDirectory()) {
+          // Other directories at root → .claude/skills/
           mkdirSync(destPath, { recursive: true });
           await copyDirectory(srcPath, destPath, stats);
         } else {
-          // Root-level files (README.md, install.sh, etc.)
+          // Root-level files
           if (!isProtected(entry.name)) {
             copyFileSync(srcPath, destPath);
             stats.copied++;
