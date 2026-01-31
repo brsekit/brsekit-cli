@@ -8,7 +8,7 @@ import * as p from "@clack/prompts";
 import fse from "fs-extra";
 import type { InitContext } from "../types.js";
 import { logger } from "../../../shared/logger.js";
-import { PROTECTED_PATTERNS } from "../../../shared/constants.js";
+import { PROTECTED_PATTERNS, DEPRECATED_SKILLS, WORKSPACE_FOLDERS } from "../../../shared/constants.js";
 
 /**
  * Check if path matches any protected pattern
@@ -77,6 +77,73 @@ async function copyDirectory(
 }
 
 /**
+ * Find deprecated skills that exist in target directory
+ */
+function findDeprecatedSkills(skillsDir: string): string[] {
+  if (!existsSync(skillsDir)) return [];
+
+  const found: string[] = [];
+  for (const skill of DEPRECATED_SKILLS) {
+    const skillPath = join(skillsDir, skill);
+    if (existsSync(skillPath) && statSync(skillPath).isDirectory()) {
+      found.push(skill);
+    }
+  }
+  return found;
+}
+
+/**
+ * Remove deprecated skills with user confirmation
+ */
+async function cleanupDeprecatedSkills(
+  skillsDir: string,
+  skipConfirm: boolean
+): Promise<{ removed: string[]; skipped: string[] }> {
+  const deprecated = findDeprecatedSkills(skillsDir);
+
+  if (deprecated.length === 0) {
+    return { removed: [], skipped: [] };
+  }
+
+  // Show user what will be deleted
+  p.log.warn(`Found ${deprecated.length} deprecated skill(s):`);
+  for (const skill of deprecated) {
+    p.log.message(`  • ${skill}`);
+  }
+
+  // Ask for confirmation unless --yes flag is set
+  let shouldRemove = skipConfirm;
+  if (!skipConfirm) {
+    const confirm = await p.confirm({
+      message: "Remove these deprecated skills? (They have been merged into other skills)",
+      initialValue: true,
+    });
+
+    if (p.isCancel(confirm)) {
+      return { removed: [], skipped: deprecated };
+    }
+    shouldRemove = confirm;
+  }
+
+  if (shouldRemove) {
+    const removed: string[] = [];
+    for (const skill of deprecated) {
+      const skillPath = join(skillsDir, skill);
+      try {
+        rmSync(skillPath, { recursive: true, force: true });
+        removed.push(skill);
+        logger.verbose(`Removed deprecated skill: ${skill}`);
+      } catch (error) {
+        logger.verbose(`Failed to remove ${skill}: ${error}`);
+      }
+    }
+    return { removed, skipped: [] };
+  }
+
+  return { removed: [], skipped: deprecated };
+}
+
+/**
  * Handle file merge
  */
 export async function handleMerge(ctx: InitContext): Promise<InitContext> {
@@ -87,7 +154,8 @@ export async function handleMerge(ctx: InitContext): Promise<InitContext> {
 
   logger.verbose("Starting merge", {
     from: ctx.extractDir,
-    to: ctx.skillsDir,
+    skillsDir: ctx.skillsDir,
+    workspaceDir: ctx.resolvedDir,
   });
 
   const spinner = p.spinner();
@@ -100,14 +168,44 @@ export async function handleMerge(ctx: InitContext): Promise<InitContext> {
       rmSync(ctx.skillsDir, { recursive: true, force: true });
     }
 
-    // Ensure target directory exists
+    // Ensure target directories exist
     mkdirSync(ctx.skillsDir, { recursive: true });
 
-    // Copy files
     const stats = { copied: 0, skipped: 0 };
-    await copyDirectory(ctx.extractDir, ctx.skillsDir, stats);
 
-    // Write metadata
+    // Get all entries from extracted directory
+    const entries = readdirSync(ctx.extractDir, { withFileTypes: true });
+
+    // Separate workspace folders (DATA) from skills content (CODE)
+    for (const entry of entries) {
+      const srcPath = join(ctx.extractDir, entry.name);
+
+      if (WORKSPACE_FOLDERS.includes(entry.name) && entry.isDirectory()) {
+        // DATA folders → copy to workspace root
+        const destPath = join(ctx.resolvedDir, entry.name);
+        spinner.message(`Installing ${entry.name}/ to workspace root...`);
+        mkdirSync(destPath, { recursive: true });
+        await copyDirectory(srcPath, destPath, stats);
+        logger.verbose(`Installed workspace folder: ${entry.name}/`);
+      } else {
+        // CODE folders/files → copy to .claude/skills/
+        const destPath = join(ctx.skillsDir, entry.name);
+        if (entry.isDirectory()) {
+          mkdirSync(destPath, { recursive: true });
+          await copyDirectory(srcPath, destPath, stats);
+        } else {
+          // Root-level files (README.md, install.sh, etc.)
+          if (!isProtected(entry.name)) {
+            copyFileSync(srcPath, destPath);
+            stats.copied++;
+          } else {
+            stats.skipped++;
+          }
+        }
+      }
+    }
+
+    // Write metadata to skills dir
     const metadata = {
       version: ctx.selectedVersion,
       installedAt: new Date().toISOString(),
@@ -119,6 +217,23 @@ export async function handleMerge(ctx: InitContext): Promise<InitContext> {
     });
 
     spinner.stop(`Installed ${stats.copied} files (${stats.skipped} protected)`);
+
+    // Show where workspace folders were installed
+    for (const folder of WORKSPACE_FOLDERS) {
+      const folderPath = join(ctx.resolvedDir, folder);
+      if (existsSync(folderPath)) {
+        p.log.info(`  ${folder}/ → ${folderPath}`);
+      }
+    }
+
+    // Cleanup deprecated skills (with user confirmation)
+    const cleanup = await cleanupDeprecatedSkills(
+      ctx.skillsDir,
+      ctx.options.yes || false
+    );
+    if (cleanup.removed.length > 0) {
+      p.log.success(`Removed ${cleanup.removed.length} deprecated skill(s)`);
+    }
 
     // Cleanup temp directory
     if (ctx.tempDir) {

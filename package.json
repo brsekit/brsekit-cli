@@ -1,6 +1,6 @@
 {
   "name": "brsekit-cli",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "description": "CLI tool for bootstrapping and updating BrseKit projects",
   "type": "module",
   "bin": {
