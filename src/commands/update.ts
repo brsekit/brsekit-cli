@@ -15,6 +15,7 @@ export interface UpdateOptions {
   verbose?: boolean;
   yes?: boolean;
   beta?: boolean;
+  fresh?: boolean;
 }
 
 /**
@@ -59,8 +60,7 @@ export async function updateCommand(options: UpdateOptions): Promise<void> {
     verbose: options.verbose,
     yes: options.yes,
     beta: options.beta,
-    // These are not needed for update
     global: false,
-    fresh: false,
+    fresh: options.fresh || false,
   });
 }
