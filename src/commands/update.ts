@@ -16,6 +16,7 @@ export interface UpdateOptions {
   yes?: boolean;
   beta?: boolean;
   fresh?: boolean;
+  skipDeps?: boolean;
 }
 
 /**
@@ -62,5 +63,6 @@ export async function updateCommand(options: UpdateOptions): Promise<void> {
     beta: options.beta,
     global: false,
     fresh: options.fresh || false,
+    skipDeps: options.skipDeps,
   });
 }

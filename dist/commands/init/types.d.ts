@@ -9,6 +9,7 @@ export interface InitOptions {
     yes?: boolean;
     beta?: boolean;
     verbose?: boolean;
+    skipDeps?: boolean;
 }
 export interface InitContext {
     options: InitOptions;
@@ -16,6 +17,7 @@ export interface InitContext {
     skillsDir: string;
     isGlobal: boolean;
     isNonInteractive: boolean;
+    skipDeps: boolean;
     selectedVersion: string;
     tempDir?: string;
     extractDir?: string;

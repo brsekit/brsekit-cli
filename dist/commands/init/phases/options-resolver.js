@@ -11,6 +11,7 @@ export async function resolveOptions(options) {
     const homeDir = process.env.HOME || process.env.USERPROFILE || "";
     const isGlobal = options.global ?? false;
     const isNonInteractive = options.yes ?? false;
+    const skipDeps = options.skipDeps ?? false;
     // Determine target directory
     let resolvedDir;
     if (options.dir) {
@@ -31,6 +32,7 @@ export async function resolveOptions(options) {
         skillsDir,
         isGlobal,
         isNonInteractive,
+        skipDeps,
         selectedVersion: options.release || "",
         cancelled: false,
     };

@@ -10,6 +10,7 @@ export interface InitOptions {
   yes?: boolean;
   beta?: boolean;
   verbose?: boolean;
+  skipDeps?: boolean; // Skip running install script for dependencies
 }
 
 export interface InitContext {
@@ -18,6 +19,7 @@ export interface InitContext {
   skillsDir: string;
   isGlobal: boolean;
   isNonInteractive: boolean;
+  skipDeps: boolean; // Skip dependency installation
   selectedVersion: string;
   tempDir?: string;
   extractDir?: string;

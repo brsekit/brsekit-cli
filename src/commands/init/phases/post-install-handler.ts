@@ -11,8 +11,13 @@ import { logger } from "../../../shared/logger.js";
 
 /**
  * Run install script if exists
+ * @param skillsDir - Path to skills directory
+ * @param autoConfirm - If true, pass -Y/-y flag to skip prompts
  */
-async function runInstallScript(skillsDir: string): Promise<boolean> {
+async function runInstallScript(
+  skillsDir: string,
+  autoConfirm: boolean = false
+): Promise<boolean> {
   const isWindows = process.platform === "win32";
   const scriptName = isWindows ? "install.ps1" : "install.sh";
   const scriptPath = join(skillsDir, scriptName);
@@ -22,16 +27,23 @@ async function runInstallScript(skillsDir: string): Promise<boolean> {
     return true;
   }
 
-  logger.verbose(`Running ${scriptName}`);
+  logger.verbose(`Running ${scriptName}${autoConfirm ? " (auto-confirm)" : ""}`);
 
   try {
     if (isWindows) {
-      execSync(`powershell -ExecutionPolicy Bypass -File "${scriptPath}"`, {
-        cwd: skillsDir,
-        stdio: "inherit",
-      });
+      // -Y flag skips all prompts in install.ps1
+      const yesFlag = autoConfirm ? " -Y" : "";
+      execSync(
+        `powershell -ExecutionPolicy Bypass -File "${scriptPath}"${yesFlag}`,
+        {
+          cwd: skillsDir,
+          stdio: "inherit",
+        }
+      );
     } else {
-      execSync(`bash "${scriptPath}"`, {
+      // -y flag skips all prompts in install.sh
+      const yesFlag = autoConfirm ? " -y" : "";
+      execSync(`bash "${scriptPath}"${yesFlag}`, {
         cwd: skillsDir,
         stdio: "inherit",
       });
@@ -134,8 +146,29 @@ export async function handlePostInstall(ctx: InitContext): Promise<InitContext> 
   // Check/create .env
   await checkEnvFile(ctx.skillsDir, ctx.isNonInteractive);
 
-  // Ask about running install script
-  if (!ctx.isNonInteractive) {
+  // Handle dependency installation based on mode:
+  // - skipDeps=true: Skip installation (user explicitly requested)
+  // - isNonInteractive=true (-y): Auto-run (yes to all = auto-install)
+  // - interactive: Ask user
+  if (ctx.skipDeps) {
+    logger.verbose("Skipping dependency installation (--skip-deps)");
+    p.log.info("Skipping dependency installation (use install.sh/install.ps1 manually)");
+  } else if (ctx.isNonInteractive) {
+    // Non-interactive mode: auto-run install script with -Y flag
+    // -y flag means "yes to all", not "skip all"
+    const spinner = p.spinner();
+    spinner.start("Installing dependencies (auto-confirmed)...");
+
+    const success = await runInstallScript(ctx.skillsDir, true);
+
+    if (success) {
+      spinner.stop("Dependencies installed");
+    } else {
+      spinner.stop("Some dependencies may have failed to install");
+      p.log.warning("You can retry manually: .claude/skills/install.ps1 (Windows) or install.sh (Unix)");
+    }
+  } else {
+    // Interactive mode: ask user
     const shouldInstall = await p.confirm({
       message: "Run installation script to setup dependencies?",
       initialValue: true,
@@ -145,7 +178,8 @@ export async function handlePostInstall(ctx: InitContext): Promise<InitContext> 
       const spinner = p.spinner();
       spinner.start("Installing dependencies...");
 
-      const success = await runInstallScript(ctx.skillsDir);
+      // User already confirmed via CLI, pass -Y to skip install script prompts
+      const success = await runInstallScript(ctx.skillsDir, true);
 
       if (success) {
         spinner.stop("Dependencies installed");

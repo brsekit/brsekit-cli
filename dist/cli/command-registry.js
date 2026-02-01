@@ -3,6 +3,7 @@
  * Registers all CLI commands with their options and handlers
  */
 import { initCommand } from "../commands/init/init-command.js";
+import { updateCommand } from "../commands/update.js";
 import { doctorCommand } from "../commands/doctor.js";
 import { versionCommand } from "../commands/version.js";
 /**
@@ -18,9 +19,23 @@ export function registerCommands(cli) {
         .option("--fresh", "Clean reinstall (remove existing installation)")
         .option("-y, --yes", "Non-interactive mode with defaults")
         .option("--beta", "Show beta/prerelease versions")
+        .option("--skip-deps", "Skip running install script for dependencies")
         .option("-v, --verbose", "Enable verbose logging")
         .action(async (options) => {
         await initCommand(options);
+    });
+    // Update command - shortcut for updating existing installation
+    cli
+        .command("update", "Update BrseKit to latest version")
+        .option("--dir <dir>", "Target directory (default: current directory)")
+        .option("-r, --release <version>", "Use specific version (e.g., latest, v1.5.0)")
+        .option("--fresh", "Clean reinstall (remove existing installation)")
+        .option("-y, --yes", "Non-interactive mode with defaults")
+        .option("--beta", "Show beta/prerelease versions")
+        .option("--skip-deps", "Skip running install script for dependencies")
+        .option("-v, --verbose", "Enable verbose logging")
+        .action(async (options) => {
+        await updateCommand(options);
     });
     // Doctor command - health check
     cli

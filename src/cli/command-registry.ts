@@ -22,6 +22,7 @@ export function registerCommands(cli: CAC): void {
     .option("--fresh", "Clean reinstall (remove existing installation)")
     .option("-y, --yes", "Non-interactive mode with defaults")
     .option("--beta", "Show beta/prerelease versions")
+    .option("--skip-deps", "Skip running install script for dependencies")
     .option("-v, --verbose", "Enable verbose logging")
     .action(async (options) => {
       await initCommand(options);
@@ -35,6 +36,7 @@ export function registerCommands(cli: CAC): void {
     .option("--fresh", "Clean reinstall (remove existing installation)")
     .option("-y, --yes", "Non-interactive mode with defaults")
     .option("--beta", "Show beta/prerelease versions")
+    .option("--skip-deps", "Skip running install script for dependencies")
     .option("-v, --verbose", "Enable verbose logging")
     .action(async (options) => {
       await updateCommand(options);

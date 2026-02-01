@@ -41,9 +41,9 @@ export async function updateCommand(options) {
         verbose: options.verbose,
         yes: options.yes,
         beta: options.beta,
-        // These are not needed for update
         global: false,
-        fresh: false,
+        fresh: options.fresh || false,
+        skipDeps: options.skipDeps,
     });
 }
 //# sourceMappingURL=update.js.map

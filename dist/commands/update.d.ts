@@ -8,6 +8,8 @@ export interface UpdateOptions {
     verbose?: boolean;
     yes?: boolean;
     beta?: boolean;
+    fresh?: boolean;
+    skipDeps?: boolean;
 }
 /**
  * Main update command handler

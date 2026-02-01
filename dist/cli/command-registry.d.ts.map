@@ -1,1 +1,1 @@
-{"version":3,"file":"command-registry.d.ts","sourceRoot":"","sources":["../../src/cli/command-registry.ts"],"names":[],"mappings":"AAAA;;;GAGG;AAEH,OAAO,KAAK,EAAE,GAAG,EAAE,MAAM,KAAK,CAAC;AAK/B;;GAEG;AACH,wBAAgB,gBAAgB,CAAC,GAAG,EAAE,GAAG,GAAG,IAAI,CA8B/C"}
+{"version":3,"file":"command-registry.d.ts","sourceRoot":"","sources":["../../src/cli/command-registry.ts"],"names":[],"mappings":"AAAA;;;GAGG;AAEH,OAAO,KAAK,EAAE,GAAG,EAAE,MAAM,KAAK,CAAC;AAM/B;;GAEG;AACH,wBAAgB,gBAAgB,CAAC,GAAG,EAAE,GAAG,GAAG,IAAI,CA6C/C"}
