@@ -30,15 +30,18 @@ export const PROTECTED_PATTERNS = [
 // Default target directory for skills
 export const DEFAULT_SKILLS_DIR = ".claude/skills";
 
-// Deprecated skills removed in v1.1.0
-// These will be deleted during update with user confirmation
+// Deprecated skills - will be deleted during update with user confirmation
 export const DEPRECATED_SKILLS = [
+  // v1.1.0 deprecations (merged into other skills)
   "bk-minutes",   // Merged into bk-capture
   "bk-report",    // Merged into bk-track
   "bk-status",    // Merged into bk-track
   "bk-task",      // Merged into bk-capture
   "bk-tester",    // Merged into bk-spec
   "bk-translate", // Merged into bk-convert
+  // v1.7.0 renames (UX redesign)
+  "bk-init",      // Renamed to bk-onboard
+  "brsekit",      // Renamed to bk-help
 ];
 
 // Folders that should be installed at workspace root (not in .claude/skills/)
